@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createTraffic, drawTraffic } from './space-traffic';
+import { loadShipAtlas, renderShip } from './ship-renderer';
 
 type Particle = {
   x: number;
@@ -99,6 +100,9 @@ export function ParticleScene() {
     }));
     // Sparse background transits, drawn before the DTP particles.
     const traffic = createTraffic();
+    const shipAtlas = loadShipAtlas();
+    const paintShip = (context: CanvasRenderingContext2D, model: number, t: number, now: number, w: number, size: number) =>
+      renderShip(context, shipAtlas, model, t, now, w, size);
     const sprites = colors.map((color) => {
       const s = document.createElement('canvas');
       s.width = 64;
@@ -142,7 +146,7 @@ export function ParticleScene() {
       ctx.globalCompositeOperation = 'lighter';
       if (!motion.matches) {
         const flight = traffic.tick(elapsed);
-        if (flight) drawTraffic(ctx, flight, elapsed, width, height);
+        if (flight) drawTraffic(ctx, flight, elapsed, width, height, paintShip);
       }
       if (!down && !still) {
         tiltX *= Math.pow(0.91, dt * 60);
@@ -270,6 +274,8 @@ export function ParticleScene() {
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      shipAtlas.image.onload = null;
+      shipAtlas.image.onerror = null;
       window.removeEventListener('keydown', summon);
       canvas.removeEventListener('pointermove', move);
       canvas.removeEventListener('pointerdown', press);

@@ -1,0 +1,7 @@
+# Cinematic fleet artwork
+
+Created with the built-in Imagegen tool for this project. Fifteen distinct top-down spacecraft, facing right, with metallic panel details, luminous cockpits and differentiated engine outlets. Atlas is 1619 × 971 RGB, black-backed, composited with Canvas screen blending. Source rectangles and engine anchors are measured in `components/ship-renderer.ts`.
+
+Generation brief: One production sprite atlas, exactly fifteen highly detailed cinematic modern sci-fi spacecraft, five columns by three rows. One centered ship per cell, top-down view, noses right and engines left. Different silhouettes, materials, cockpits and engine identities: interceptor, twin-nacelle explorer, stealth manta, ring drive and heavy cruiser among the fleet. Metallic panel detail, jewel cockpit, luminous engine outlets, no long exhaust, no labels, grid or stars. Generous padding and no overlap.
+
+Final background edit prompt: “Edit only the background of this existing 15-spaceship atlas: replace every checkerboard pixel with perfectly uniform solid pure black #000000. Preserve the fifteen spacecraft, their exact 5 columns × 3 rows positions, orientations (all facing RIGHT), proportions, colors, material details and crisp contours. Background must be flat pitch BLACK with RGB 0,0,0. No stars, glow clouds, patterns, grid, checkerboard, labels or text. Keep all ships wholly inside their separate grid cells. Same landscape canvas. This is a production sprite atlas for black-space compositing.”

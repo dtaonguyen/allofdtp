@@ -1,10 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createTraffic, hulls, pickKind, randomDelay, drawTraffic } from '../components/space-traffic.ts';
+import { createTraffic, SHIP_COUNT, pickKind, randomDelay, drawTraffic } from '../components/space-traffic.ts';
+import { shipModels, renderShip } from '../components/ship-renderer.ts';
 
 test('15 distinct silhouettes and randomized unbounded intervals', () => {
-  assert.equal(hulls.length,15);
-  assert.equal(new Set(hulls.map(JSON.stringify)).size,15);
+  assert.equal(SHIP_COUNT,15);
+  assert.equal(shipModels.length,15);
+  assert.equal(new Set(shipModels.map(m=>m.name)).size,15);
   assert.ok(randomDelay(()=>.9)>randomDelay(()=>.1));
   assert.ok(Number.isFinite(randomDelay(()=>1)));
 });
@@ -40,8 +42,23 @@ test('renderer balances canvas state for every object, including tiny viewport',
   const ctx=new Proxy({}, {get:(_,key)=>key==='save'?()=>depth++:key==='restore'?()=>depth--:key==='createRadialGradient'||key==='createLinearGradient'?()=>gradient:()=>{},set:()=>true});
   for(const kind of ['ship','meteor','dust','asteroid','satellite','comet']){
     for(let model=0;model<15;model++)for(const time of [0,1,5,9.9]){
-      drawTraffic(ctx,{kind,model,start:0,duration:10,from:[.1,.1],to:[.9,.9],size:1,bend:.1},time,320,280);
+      drawTraffic(ctx,{kind,model,start:0,duration:10,from:[.1,.1],to:[.9,.9],size:1,bend:.1},time,320,280,
+        (c,m,t,n,w,s)=>renderShip(c,{ready:true,image:{naturalWidth:1500,naturalHeight:900}},m,t,n,w,s));
       assert.equal(depth,0);
     }
   }
+});
+
+test('each ship samples its own atlas cell; missing image is safe',()=>{
+  const samples=[];
+  const gradient={addColorStop(){}};
+  const ctx=new Proxy({}, {get:(_,key)=>key==='drawImage'?(...args)=>samples.push(args):key==='createRadialGradient'||key==='createLinearGradient'?()=>gradient:()=>{},set:()=>true});
+  renderShip(ctx,undefined,0,.5,5,1200,1);
+  renderShip(ctx,{ready:false,image:{}},0,.5,5,1200,1);
+  assert.equal(samples.length,0);
+  const image={naturalWidth:1500,naturalHeight:900};
+  for(let i=0;i<15;i++)renderShip(ctx,{ready:true,image},i,.5,5,1200,1);
+  assert.equal(samples.length,15);
+  assert.equal(new Set(samples.map(a=>a.slice(1,3).join(','))).size,15);
+  for(const [,x,y,w,h] of samples){assert.ok(x>=0&&y>=0&&x+w<=1500&&y+h<=900);}
 });
