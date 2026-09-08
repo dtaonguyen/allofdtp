@@ -16,9 +16,9 @@ test('lighting is subtle, continuous, position-dependent and fades at both ends'
     let previous=flightLighting(0,angle,.5);
     for(let i=0;i<=1000;i++){
       const light=flightLighting(i/1000,angle,i/1000);
-      assert.ok(light.halo>=0&&light.halo<=.0281);
-      assert.ok(light.exposure>=.48&&light.exposure<=1);
-      assert.ok(Math.abs(light.halo-previous.halo)<.001);
+      assert.ok(light.halo>=0&&light.halo<=.1801);
+      assert.ok(light.exposure>=.58&&light.exposure<=1);
+      assert.ok(Math.abs(light.halo-previous.halo)<.002);
       previous=light;
     }
     assert.ok(flightLighting(1,angle,.5).halo<1e-10);

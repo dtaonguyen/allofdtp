@@ -33,7 +33,7 @@ export function loadShipAtlas(): ShipAtlas {
   image.decoding='async';
   image.onload=()=>{atlas.ready=image.naturalWidth>0;};
   image.onerror=()=>{atlas.ready=false;};
-  image.src='/ships/fleet-scientific.png';
+  image.src='/ships/fleet-scientific-alpha.png';
   return atlas;
 }
 // Slow, bounded exposure variation, without oscillating flashes.
@@ -42,7 +42,8 @@ export function flightLighting(t: number, angle: number, screenX: number) {
   const envelope=Math.sin(Math.PI*progress)**2;
   const incidence=.5+.5*Math.cos(angle+.65);
   const sweep=.5+.5*Math.sin(Math.max(0,Math.min(1,screenX))*Math.PI);
-  return {exposure:.48+envelope*(.22+.16*incidence+.12*sweep),halo:envelope*(.012+.016*incidence)};
+  const arrival=Math.sin(Math.PI*Math.min(1,progress/.3))**2;
+  return {exposure:.58+envelope*(.18+.12*incidence+.12*sweep),halo:envelope*(.045+.035*incidence)+arrival*.10};
 }
 export function renderShip(ctx: CanvasRenderingContext2D, atlas: ShipAtlas | undefined, modelIndex: number, t: number, _now: number, width: number, variation: number, angle=0, screenX=.5) {
   if(!atlas?.ready)return;
@@ -51,7 +52,7 @@ export function renderShip(ctx: CanvasRenderingContext2D, atlas: ShipAtlas | und
   const light=flightLighting(t,angle,screenX);
   ctx.save();
   // Subtle optical bloom behind DTP, not simulated scattering in vacuum.
-  const radius=Math.min(260,size*2.1);
+  const radius=Math.min(340,size*2.7);
   ctx.globalCompositeOperation='screen';
   const glow=ctx.createRadialGradient(-size*.15,-size*.16,size*.2,0,0,radius);
   glow.addColorStop(0,`rgba(213,225,237,${light.halo})`);
@@ -78,6 +79,7 @@ export function renderShip(ctx: CanvasRenderingContext2D, atlas: ShipAtlas | und
   const [top,bottom]=rows[row];
   const cellW=(right-left)*sx,cellH=(bottom-top)*sy;
   const displayH=size*cellH/cellW;
+  ctx.globalCompositeOperation='source-over';
   ctx.globalAlpha*=light.exposure;
   ctx.drawImage(atlas.image,left*sx,top*sy,cellW,cellH,-size/2,-displayH/2,size,displayH);
   ctx.restore();
