@@ -1,0 +1,7 @@
+allofdtp.site {
+    root * /var/www/allofdtp/current
+    encode zstd gzip
+    file_server
+    @internal path /.vite/* /.assetsignore /_headers /vinext-client-entry-manifest.json
+    respond @internal 404
+}

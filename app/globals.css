@@ -1,0 +1,236 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+:root {
+  color-scheme: dark;
+  --background: #03090e;
+  --foreground: #edf2f5;
+  --font-sans: Arial, Helvetica, sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #03090e;
+  color: #edf2f5;
+  font-family: Arial, Helvetica, sans-serif;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+}
+.workspace {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(
+    ellipse at 50% 42%,
+    #070c11 5%,
+    #02070b 58%,
+    #0a1720 130%
+  );
+}
+.masthead {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 4.5vw;
+  gap: 24px;
+}
+.masthead h1 {
+  margin: 0;
+  font-size: 19px;
+  letter-spacing: -0.6px;
+  font-weight: 600;
+}
+.masthead h1 span {
+  font-weight: 400;
+  color: #a6b3bd;
+  margin-left: 5px;
+}
+.masthead p {
+  margin: 0;
+  color: #a6b3bd;
+  font-size: 14px;
+}
+.scene {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 390px;
+  height: calc(100svh - 258px);
+}
+.particle-canvas {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y pinch-zoom;
+  cursor: grab;
+  outline: none;
+}
+.particle-canvas:active {
+  cursor: grabbing;
+}
+.particle-canvas:focus-visible {
+  outline: 1px solid #8ca9bb;
+  outline-offset: -12px;
+}
+.scene-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 4.5vw;
+  /* Kept in the DOM for accessibility and easy re-enabling, but hidden in the clean landing view. */
+  display: none;
+  gap: 8px;
+}
+.scene-controls button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 5%);
+  color: #9eaeb9;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.scene-controls button:hover {
+  background: rgb(255 255 255 / 12%);
+  color: white;
+}
+.scene-controls button:focus-visible {
+  outline: 2px solid #b8dceb;
+  outline-offset: 3px;
+}
+.scene-controls svg {
+  width: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.destinations {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 38px;
+  margin: 20px 4.5vw 40px;
+}
+.destination {
+  display: grid;
+  grid-template-columns: 25px 1fr 18px;
+  align-items: center;
+  gap: 14px 8px;
+  border-top: 1px solid #34414b;
+  padding: 22px 0 8px;
+  transition: border-color 0.25s;
+}
+.destination-index {
+  color: #81909c;
+  font-size: 12px;
+}
+.destination-title {
+  font-size: clamp(16px, 1.5vw, 21px);
+  letter-spacing: -0.5px;
+  line-height: 1.4;
+}
+.destination-domain {
+  grid-column: 2;
+  font-size: 12px;
+  color: #8c9aa5;
+}
+.destination svg {
+  width: 18px;
+  fill: none;
+  stroke: #bac7cf;
+  stroke-width: 1.4;
+  transition: transform 0.25s;
+}
+.destination:hover {
+  border-color: #d9e8ef;
+}
+.destination:hover svg {
+  transform: translate(3px, -3px);
+}
+.destination:focus-visible {
+  outline: 2px solid #b8dceb;
+  outline-offset: 8px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .masthead {
+    padding: 26px 24px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .masthead h1 {
+    font-size: 18px;
+  }
+  .masthead p {
+    font-size: 13px;
+  }
+  .scene {
+    min-height: 280px;
+    height: 38svh;
+    flex: none;
+  }
+  .scene-controls {
+    right: 20px;
+    bottom: 0;
+  }
+  .destinations {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin: 24px 24px 28px;
+  }
+  .destination {
+    padding: 20px 0;
+    gap: 8px;
+  }
+  .destination-title {
+    font-size: 18px;
+  }
+  .destination-domain {
+    font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
+  .scene-controls {
+    display: none;
+  }
+}
