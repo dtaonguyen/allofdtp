@@ -3,6 +3,7 @@
 /* oxlint-disable jsx-a11y/prefer-tag-over-role -- Canvas renders an interactive image; an img cannot expose the renderer. */
 
 import { useEffect, useRef, useState } from 'react';
+import { createTraffic, drawTraffic } from './space-traffic';
 
 type Particle = {
   x: number;
@@ -97,8 +98,7 @@ export function ParticleScene() {
       a: 0.1 + Math.random() * 0.4,
     }));
     // Sparse background transits, drawn before the DTP particles.
-    let nextTransit = 5 + Math.random() * 4;
-    let transit: { start: number; duration: number; y: number; slope: number; reverse: boolean } | null = null;
+    const traffic = createTraffic();
     const sprites = colors.map((color) => {
       const s = document.createElement('canvas');
       s.width = 64;
@@ -130,8 +130,8 @@ export function ParticleScene() {
     const draw = (time: number) => {
       const dt = Math.min((time - last) / 1000 || 0.016, 0.035);
       last = time;
-      if (!pause.current && !motion.matches) elapsed += dt;
-      const still = pause.current || motion.matches;
+      if (!pause.current && !motion.matches && !document.hidden) elapsed += dt;
+      const still = pause.current || motion.matches || document.hidden;
       const progress = motion.matches ? 1 : Math.min(1, elapsed / 3.8);
       const ease = progress * progress * (3 - 2 * progress);
       ctx.clearRect(0, 0, width, height);
@@ -140,39 +140,9 @@ export function ParticleScene() {
         ctx.fillRect(star.x * width, star.y * height, star.r, star.r);
       }
       ctx.globalCompositeOperation = 'lighter';
-      if (!still && elapsed >= nextTransit && !transit) {
-        transit = {
-          start: elapsed,
-          duration: 3 + Math.random() * 3,
-          y: 0.15 + Math.random() * 0.6,
-          slope: (Math.random() - 0.5) * 0.25,
-          reverse: Math.random() > 0.5,
-        };
-      }
-      if (transit && !motion.matches) {
-        const t = (elapsed - transit.start) / transit.duration;
-        if (t >= 1) {
-          transit = null;
-          nextTransit = elapsed + 9 + Math.random() * 12;
-        } else {
-          const direction = transit.reverse ? -1 : 1;
-          const x = (transit.reverse ? 1.1 - t * 1.2 : -0.1 + t * 1.2) * width;
-          const y = (transit.y + t * transit.slope) * height;
-          const tail = Math.min(48, width * 0.065);
-          const fade = Math.min(1, t * 6, (1 - t) * 6) * 0.55;
-          const glow = ctx.createLinearGradient(x - direction * tail, y, x, y);
-          glow.addColorStop(0, 'rgba(140,210,242,0)');
-          glow.addColorStop(1, `rgba(190,226,245,${fade})`);
-          ctx.strokeStyle = glow;
-          ctx.lineWidth = 0.8;
-          ctx.beginPath();
-          ctx.moveTo(x - direction * tail, y - transit.slope * height * tail / (width * 1.2));
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          ctx.globalAlpha = fade;
-          ctx.drawImage(sprites[1], x - 7, y - 7, 14, 14);
-          ctx.globalAlpha = 1;
-        }
+      if (!motion.matches) {
+        const flight = traffic.tick(elapsed);
+        if (flight) drawTraffic(ctx, flight, elapsed, width, height);
       }
       if (!down && !still) {
         tiltX *= Math.pow(0.91, dt * 60);
@@ -235,8 +205,7 @@ export function ParticleScene() {
     };
     replay.current = () => {
       elapsed = 0;
-      transit = null;
-      nextTransit = 5 + Math.random() * 4;
+      traffic.reset();
       tiltX = 0;
       tiltY = 0;
       particles.forEach((p) => {
@@ -282,6 +251,15 @@ export function ParticleScene() {
         tiltY += e.key === 'ArrowUp' ? -0.1 : e.key === 'ArrowDown' ? 0.1 : 0;
       }
     };
+    const summon = (e: KeyboardEvent) => {
+      if (e.code !== 'KeyS' || !e.ctrlKey || !e.altKey || e.shiftKey || e.metaKey || e.repeat || e.isComposing) return;
+      const target = e.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || target.closest('input, textarea, select'))) return;
+      if (motion.matches || pause.current || document.hidden) return;
+      e.preventDefault();
+      traffic.summon(elapsed);
+    };
+    window.addEventListener('keydown', summon);
     canvas.addEventListener('pointermove', move);
     canvas.addEventListener('pointerdown', press);
     canvas.addEventListener('pointerup', release);
@@ -292,6 +270,7 @@ export function ParticleScene() {
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      window.removeEventListener('keydown', summon);
       canvas.removeEventListener('pointermove', move);
       canvas.removeEventListener('pointerdown', press);
       canvas.removeEventListener('pointerup', release);
