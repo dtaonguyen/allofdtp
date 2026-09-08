@@ -96,6 +96,9 @@ export function ParticleScene() {
       r: 0.25 + Math.random() * 0.65,
       a: 0.1 + Math.random() * 0.4,
     }));
+    // Sparse background transits, drawn before the DTP particles.
+    let nextTransit = 5 + Math.random() * 4;
+    let transit: { start: number; duration: number; y: number; slope: number; reverse: boolean } | null = null;
     const sprites = colors.map((color) => {
       const s = document.createElement('canvas');
       s.width = 64;
@@ -137,6 +140,40 @@ export function ParticleScene() {
         ctx.fillRect(star.x * width, star.y * height, star.r, star.r);
       }
       ctx.globalCompositeOperation = 'lighter';
+      if (!still && elapsed >= nextTransit && !transit) {
+        transit = {
+          start: elapsed,
+          duration: 3 + Math.random() * 3,
+          y: 0.15 + Math.random() * 0.6,
+          slope: (Math.random() - 0.5) * 0.25,
+          reverse: Math.random() > 0.5,
+        };
+      }
+      if (transit && !motion.matches) {
+        const t = (elapsed - transit.start) / transit.duration;
+        if (t >= 1) {
+          transit = null;
+          nextTransit = elapsed + 9 + Math.random() * 12;
+        } else {
+          const direction = transit.reverse ? -1 : 1;
+          const x = (transit.reverse ? 1.1 - t * 1.2 : -0.1 + t * 1.2) * width;
+          const y = (transit.y + t * transit.slope) * height;
+          const tail = Math.min(48, width * 0.065);
+          const fade = Math.min(1, t * 6, (1 - t) * 6) * 0.55;
+          const glow = ctx.createLinearGradient(x - direction * tail, y, x, y);
+          glow.addColorStop(0, 'rgba(140,210,242,0)');
+          glow.addColorStop(1, `rgba(190,226,245,${fade})`);
+          ctx.strokeStyle = glow;
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.moveTo(x - direction * tail, y - transit.slope * height * tail / (width * 1.2));
+          ctx.lineTo(x, y);
+          ctx.stroke();
+          ctx.globalAlpha = fade;
+          ctx.drawImage(sprites[1], x - 7, y - 7, 14, 14);
+          ctx.globalAlpha = 1;
+        }
+      }
       if (!down && !still) {
         tiltX *= Math.pow(0.91, dt * 60);
         tiltY *= Math.pow(0.91, dt * 60);
@@ -198,6 +235,8 @@ export function ParticleScene() {
     };
     replay.current = () => {
       elapsed = 0;
+      transit = null;
+      nextTransit = 5 + Math.random() * 4;
       tiltX = 0;
       tiltY = 0;
       particles.forEach((p) => {
