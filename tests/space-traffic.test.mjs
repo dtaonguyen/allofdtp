@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createTraffic, SHIP_COUNT, pickKind, randomDelay, drawTraffic } from '../components/space-traffic.ts';
-import { shipModels, renderShip } from '../components/ship-renderer.ts';
+import { shipModels, renderShip, flightLighting } from '../components/ship-renderer.ts';
 
 test('15 distinct silhouettes and randomized unbounded intervals', () => {
   assert.equal(SHIP_COUNT,15);
@@ -9,6 +9,22 @@ test('15 distinct silhouettes and randomized unbounded intervals', () => {
   assert.equal(new Set(shipModels.map(m=>m.name)).size,15);
   assert.ok(randomDelay(()=>.9)>randomDelay(()=>.1));
   assert.ok(Number.isFinite(randomDelay(()=>1)));
+});
+
+test('lighting is subtle, continuous, position-dependent and fades at both ends',()=>{
+  for(const angle of [-Math.PI,-1,0,1,Math.PI]){
+    let previous=flightLighting(0,angle,.5);
+    for(let i=0;i<=1000;i++){
+      const light=flightLighting(i/1000,angle,i/1000);
+      assert.ok(light.halo>=0&&light.halo<=.0281);
+      assert.ok(light.exposure>=.48&&light.exposure<=1);
+      assert.ok(Math.abs(light.halo-previous.halo)<.001);
+      previous=light;
+    }
+    assert.ok(flightLighting(1,angle,.5).halo<1e-10);
+  }
+  assert.notEqual(flightLighting(.5,0,0).exposure,flightLighting(.5,0,.5).exposure);
+  assert.notEqual(flightLighting(.5,0,.5).halo,flightLighting(.5,Math.PI,.5).halo);
 });
 test('spaceships are the rarest ambient category', () => {
   const counts={};

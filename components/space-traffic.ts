@@ -3,7 +3,7 @@ type Kind = 'meteor' | 'dust' | 'asteroid' | 'satellite' | 'comet' | 'ship';
 type Flight = { kind: Kind; model: number; start: number; duration: number; from: Point; to: Point; size: number; bend: number };
 
 export const SHIP_COUNT = 15;
-type ShipPainter = (ctx: CanvasRenderingContext2D, model: number, t: number, now: number, width: number, size: number) => void;
+type ShipPainter = (ctx: CanvasRenderingContext2D, model: number, t: number, now: number, width: number, size: number, angle: number, screenX: number) => void;
 
 export function randomDelay(rng = Math.random) {
   return 7 - Math.log(1 - Math.min(rng(), 1 - Number.EPSILON)) * 16;
@@ -69,7 +69,7 @@ export function drawTraffic(ctx: CanvasRenderingContext2D, flight: Flight, now: 
   ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = fade * (kind === 'ship' ? .85 : .5);
   if (kind === 'ship') {
-    paintShip?.(ctx, flight.model, t, now, width, flight.size);
+    paintShip?.(ctx, flight.model, t, now, width, flight.size, angle, x/Math.max(1,width));
   } else if (kind === 'satellite') {
     ctx.rotate(.3);ctx.fillStyle='#7291ab';ctx.fillRect(-3,-2,6,4);
     ctx.fillStyle='#365571';ctx.strokeStyle='#9cb5cb';ctx.lineWidth=.6;

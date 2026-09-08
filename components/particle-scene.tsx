@@ -101,8 +101,8 @@ export function ParticleScene() {
     // Sparse background transits, drawn before the DTP particles.
     const traffic = createTraffic();
     const shipAtlas = loadShipAtlas();
-    const paintShip = (context: CanvasRenderingContext2D, model: number, t: number, now: number, w: number, size: number) =>
-      renderShip(context, shipAtlas, model, t, now, w, size);
+    const paintShip = (context: CanvasRenderingContext2D, model: number, t: number, now: number, w: number, size: number, angle: number, screenX: number) =>
+      renderShip(context, shipAtlas, model, t, now, w, size, angle, screenX);
     const sprites = colors.map((color) => {
       const s = document.createElement('canvas');
       s.width = 64;
